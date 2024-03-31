@@ -12,5 +12,8 @@ public class AnimalService {
   public List<Animal> animals(String query) {
     return animalRepository.animals(query);
   }
+  public Animal get(String id) {
+    return animalRepository.get(id);
+  }
 
 }
