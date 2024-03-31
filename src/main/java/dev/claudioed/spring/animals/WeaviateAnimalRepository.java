@@ -8,7 +8,10 @@ import io.weaviate.client.v1.graphql.query.fields.Field;
 import io.weaviate.client.v1.graphql.query.fields.Field.FieldBuilder;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,14 +24,14 @@ public class WeaviateAnimalRepository implements AnimalRepository{
 
   @Override
   public List<Animal> animals(String query) {
-    var questions = Field.builder().name("_additional")
-        .fields(Field.builder().name("description").build())
-        .fields(Field.builder().name("name").build())
-        .build();
     Result<GraphQLResponse> qlResponseResult = this.weaviateClient.graphQL().get()
-        .withFields(questions).run();
+        .withClassName(className).withFields(Field.builder().name("description").build(),Field.builder().name("name").build()).run();
     if (qlResponseResult.getResult().getData() != null) {
-      System.out.println(qlResponseResult.getResult().getData());
+      Map<String, Object> data = (Map<String, Object>) qlResponseResult.getResult().getData();
+      Map<String,Object> maps = (Map<String, Object>) data.get("Get");
+      List<Map<String,String>>  result = (List<Map<String, String>>) maps.get("Animals");
+      return result.stream().map(map -> new Animal(map.get("name"), map.get("description"))).collect(
+          Collectors.toList());
     }
     return null;
   }
